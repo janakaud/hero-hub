@@ -9,7 +9,7 @@ exports.handler = function (event, context, callback) {
 
 	axios.get('https://aws.amazon.com/heroes/').then(response => {
 		let $ = cheerio.load(response.data);
-		$('.row-builder .aws-text-box').find('a').first().each((k, v) => {
+		$('.row-builder .aws-text-box').find('a').each((k, v) => {
 
 			let url = `https://aws.amazon.com${v.attribs.href}`;
 			console.log(url);
