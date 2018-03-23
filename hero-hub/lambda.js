@@ -12,13 +12,12 @@ exports.handler = function (event, context, callback) {
 		$('.row-builder .aws-text-box').find('a').each((k, v) => {
 
 			let url = `https://aws.amazon.com${v.attribs.href}`;
-			console.log(url);
 			promises.push(axios.get(url).then(response => {
 				let hero = cheerio.load(response.data);
 
-				let name = hero(".row .title").eq(1).find('h1').first().text();
+				let name = hero(".row .title").eq(1).find('h1').first().text().trim();
 				let columns = hero(".row .column-builder");
-				let bio = columns.first().text();
+				let bio = columns.first().text().trim();
 				let linkedin = '', facebook = '', twitter = '', other = [];
 
 				columns.eq(1).find('a').each((i, a) => {
@@ -29,29 +28,38 @@ exports.handler = function (event, context, callback) {
 						facebook = link;
 					} else if (link.indexOf('twitter.') > -1) {
 						twitter = link;
-					} else {
+					} else if (!other.includes(link)) {
 						other.push(link);
 					}
 				});
 				csv.push([name, bio, url, linkedin, facebook, twitter, ...other].join(','));
+			})
+			.catch(err => {
+				callback(err);
 			}));
+		});
 
-			Promise.all(promises).then(() => {
-				console.log(`Collected ${csv.length} records`);
-				s3.putObject({
-					"Body": csv.join('\n'),
-					"Bucket": "temp-playground",
-					"Key": "heroes.csv",
-					"ACL": "public-read"
+		Promise.all(promises).then((result) => {
+			console.log(`Collected ${csv.length} records`);
+			s3.putObject({
+				"Body": csv.join('\n'),
+				"Bucket": "temp-playground",
+				"Key": "heroes.csv",
+				"ACL": "public-read"
+			})
+				.promise()
+				.then(data => {
+					callback(null, data);
 				})
-					.promise()
-					.then(data => {
-						callback(null, data);
-					})
-					.catch(err => {
-						callback(err);
-					});
-			});
+				.catch(err => {
+					callback(err);
+				});
+		})
+		.catch(err => {
+			callback(err);
 		});
 	})
+	.catch(err => {
+		callback(err);
+	});
 }
