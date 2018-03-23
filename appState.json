@@ -22,9 +22,9 @@
         "children": [],
         "isRemovable": true,
         "filePath": "hero-hub/lambda.js",
-        "code": "let AWS = require('aws-sdk');\nlet cherrio = require('cherrio');\nlet request = require('request');\n\nexports.handler = function(event, context, callback) {\nconsole.log(\"start\");\n\trequest.get('https://aws.amazon.com/heroes/', (error, response, data) => {\n\t\tconsole.log(data);\n\t\tlet $ = cherrio.load(data);\n\t\tconsole.log($);\n\t\t$('.row-builder .aws-text-box').forEach(div => console.log(div.getElementsByTagName('a')[0].href));\n\t\tcontext.success('{}');\n\t})\n}",
+        "code": "let AWS = require('aws-sdk');\nlet cheerio = require('cheerio');\nlet request = require('request');\n\nexports.handler = function(event, context, callback) {\nconsole.log(\"start\");\n\trequest.get('https://aws.amazon.com/heroes/', (error, response, data) => {\n\t\tlet $ = cheerio.load(data);\n\t\t$('.row-builder .aws-text-box').each(div => console.log(div.getElementsByTagName('a')[0].href));\n\t\tcontext.success('{}');\n\t})\n}",
         "triggers": [],
-        "version": 1
+        "version": 10
       }
     },
     "rootNode": "00221894-f8e2-45ae-85c8-e24aba83e6fc",
@@ -42,7 +42,7 @@
         "isEditable": false
       }
     ],
-    "changes": 27,
+    "changes": 2,
     "packageJSON": {
       "dependencies": {
         "aws-sdk": {
@@ -690,6 +690,6 @@
     "projectRegion": "us-east-1",
     "repoName": "hero-hub",
     "repoUrl": "https://github.com/janakaud/hero-hub",
-    "lastSave": 1521788246372
+    "lastSave": 1521789182340
   }
 }
