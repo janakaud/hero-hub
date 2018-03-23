@@ -3,6 +3,7 @@ let cherrio = require('cherrio');
 let request = require('request');
 
 exports.handler = function(event, context, callback) {
+console.log("start");
 	request.get('https://aws.amazon.com/heroes/', (error, response, data) => {
 		console.log(data);
 		let $ = cherrio.load(data);
