@@ -1,5 +1,6 @@
 let AWS = require('aws-sdk');
 const s3 = new AWS.S3();
+
 let cheerio = require('cheerio');
 let axios = require('axios');
 
@@ -17,7 +18,7 @@ exports.handler = function (event, context, callback) {
 
 				let name = hero(".row .title").eq(1).find('h1').first().text().trim();
 				let columns = hero(".row .column-builder");
-				let bio = columns.first().text().trim();
+				let bio = `"${columns.first().text().replace(/\s{2,}/g, ' ').trim()}"`;
 				let linkedin = '', facebook = '', twitter = '', other = [];
 
 				columns.eq(1).find('a').each((i, a) => {
