@@ -24,7 +24,12 @@
         "isRemovable": true,
         "filePath": "hero-hub/lambda.js",
         "code": "let AWS = require('aws-sdk');\nconst s3 = new AWS.S3();\n\nlet cheerio = require('cheerio');\nlet axios = require('axios');\n\nexports.handler = function (event, context, callback) {\n\tlet csv = [[\"Name\", \"Bio\", \"AWS\", \"LinkedIn\", \"Facebook\", \"Twitter\", \"Other...\"].join(',')];\n\tlet promises = [];\n\n\taxios.get('https://aws.amazon.com/heroes/').then(response => {\n\t\tlet $ = cheerio.load(response.data);\n\t\t$('.row-builder .aws-text-box').find('a').each((k, v) => {\n\n\t\t\tlet url = `https://aws.amazon.com${v.attribs.href}`;\n\t\t\tpromises.push(axios.get(url).then(response => {\n\t\t\t\tlet hero = cheerio.load(response.data);\n\n\t\t\t\tlet name = hero(\".row .title\").eq(1).find('h1').first().text().trim();\n\t\t\t\tlet columns = hero(\".row .column-builder\");\n\t\t\t\tlet bio = `\"${columns.first().text().replace(/\\s{2,}/g, ' ').trim()}\"`;\n\t\t\t\tlet linkedin = '', facebook = '', twitter = '', other = [];\n\n\t\t\t\tcolumns.eq(1).find('a').each((i, a) => {\n\t\t\t\t\tlet link = a.attribs.href;\n\t\t\t\t\tif (link.indexOf('linkedin.') > -1) {\n\t\t\t\t\t\tlinkedin = link;\n\t\t\t\t\t} else if (link.indexOf('facebook.') > -1) {\n\t\t\t\t\t\tfacebook = link;\n\t\t\t\t\t} else if (link.indexOf('twitter.') > -1) {\n\t\t\t\t\t\ttwitter = link;\n\t\t\t\t\t} else if (!other.includes(link)) {\n\t\t\t\t\t\tother.push(link);\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t\tcsv.push([name, bio, url, linkedin, facebook, twitter, ...other].join(','));\n\t\t\t})\n\t\t\t.catch(err => {\n\t\t\t\tcallback(err);\n\t\t\t}));\n\t\t});\n\n\t\tPromise.all(promises).then((result) => {\n\t\t\tconsole.log(`Collected ${csv.length} records`);\n\t\t\ts3.putObject({\n\t\t\t\t\"Body\": csv.join('\\n'),\n\t\t\t\t\"Bucket\": \"temp-playground\",\n\t\t\t\t\"Key\": \"heroes.csv\",\n\t\t\t\t\"ACL\": \"public-read\"\n\t\t\t})\n\t\t\t\t.promise()\n\t\t\t\t.then(data => {\n\t\t\t\t\tcallback(null, data);\n\t\t\t\t})\n\t\t\t\t.catch(err => {\n\t\t\t\t\tcallback(err);\n\t\t\t\t});\n\t\t})\n\t\t.catch(err => {\n\t\t\tcallback(err);\n\t\t});\n\t})\n\t.catch(err => {\n\t\tcallback(err);\n\t});\n}",
-        "triggers": [],
+        "triggers": [
+          {
+            "resourceName": "apigusEast1sigsigget",
+            "config": {}
+          }
+        ],
         "version": 1,
         "testCases": {
           "e39c7d3a-6f1b-46a6-ba4b-8b2292e4b132": {
@@ -65,6 +70,33 @@
           }
         },
         "globallyEditable": false
+      },
+      "apigusEast1sigsigget": {
+        "name": "apigusEast1sigsigget",
+        "type": "API_GATEWAY",
+        "config": {
+          "selectedRegion": "us-east-1",
+          "apiMode": 1,
+          "apiName": "sig",
+          "apiId": "r22952wrn5",
+          "endpointType": "EDGE",
+          "rootResourceId": "f8i0oeybrj",
+          "existingResources": {
+            "/": "f8i0oeybrj",
+            "/sig": "fiq0wf"
+          },
+          "resourceMode": 1,
+          "resourcePath": "/sig",
+          "resourceName": "sig",
+          "resourceId": "fiq0wf",
+          "restMethod": "GET",
+          "proxyIntegration": false,
+          "enableCORS": false,
+          "stageMode": 1,
+          "stageName": "test",
+          "stageDeploymentId": "4ir14k"
+        },
+        "globallyEditable": true
       }
     },
     "envVariables": [
@@ -76,7 +108,7 @@
         "isEditable": false
       }
     ],
-    "changes": 10,
+    "changes": 4,
     "packageJSON": {
       "dependencies": {
         "aws-sdk": {
@@ -609,6 +641,6 @@
     "projectRegion": "us-east-1",
     "repoName": "hero-hub",
     "repoUrl": "https://github.com/janakaud/hero-hub",
-    "lastSave": 1522154151006
+    "lastSave": 1522154974420
   }
 }
